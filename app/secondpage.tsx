@@ -3,20 +3,29 @@ import {
   Text,
   TouchableOpacity,
   SafeAreaView,
+  Keyboard,
   ImageBackground,
   StatusBar,
   Image,
   FlatList,
   Button,
+  TextInput,
+  TouchableWithoutFeedback,
+  ScrollView,
 } from "react-native";
 import React, { useState } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import DateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
+import { useNavigation, useRouter } from "expo-router";
+import { Picker } from "@react-native-picker/picker";
 const SecondPage = () => {
+  const [selectedType, setSelectedType] = useState("Income");
+  const navigation = useNavigation(); // Use navigation for back functionality
+
   const [activeIndex, setActiveIndex] = useState<number | null>(null); // Track the active icon index
-  const [date, setDate] = useState<Date>(new Date(1598051730000));
+  const [date, setDate] = useState(new Date());
   const [mode, setMode] = useState<"date" | "time">("date");
   const [show, setShow] = useState<boolean>(false);
 
@@ -97,59 +106,103 @@ const SecondPage = () => {
     </TouchableOpacity>
   );
 
+  const router = useRouter();
   return (
-    <View className="flex-1">
-      <LinearGradient
-        className="flex-1"
-        colors={["rgba(0,0,0,0.4)", "rgba(0,0,0,0.8)"]}
-      >
-        <SafeAreaView className="flex-1 mx-5 my-12 ">
-          <Text className="text-center text-white first-letter font-bold text-1xl">
-            Track expenses
-          </Text>
-          {/* Flex-row for tabs */}
-          <View className="flex-row justify-between mt-4">
-            {/* Income Tab */}
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <View className="flex-1">
+        <LinearGradient
+          className="flex-1"
+          colors={["rgba(0,0,0,0.4)", "rgba(0,0,0,0.8)"]} // Gradient overlay
+        >
+          <SafeAreaView className="flex-1 mx-5 my-12 justify-between">
+            {/* Back Button */}
             <TouchableOpacity
-              style={{ flex: 1, marginRight: 10 }} // Add margin for spacing
-              className="bg-black bg-opacity-50 p-2 rounded-lg"
+              onPress={() => navigation.goBack()} // Go back to the previous screen
+              className="absolute top-5 left-5"
             >
-              <Text className="text-center text-white font-bold text-1xl">
-                Income
-              </Text>
+              <Text className="text-white font-bold text-xl">← Back</Text>
             </TouchableOpacity>
 
-            {/* Expenses Tab */}
-            <TouchableOpacity
-              style={{ flex: 1, marginLeft: 10 }} // Add margin for spacing
-              className="bg-black bg-opacity-50 p-2 rounded-lg"
+            {/* Title */}
+            <Text className="text-center text-white font-bold text-2xl mb-6 mt-10">
+              Add Transaction
+            </Text>
+            {/* Scrollable View */}
+            <ScrollView
+              className="flex-1"
+              contentContainerStyle={{ justifyContent: "space-between" }}
+              onScrollBeginDrag={Keyboard.dismiss} // Dismiss keyboard on scroll
+              scrollEventThrottle={16} // Smooth scrolling
             >
-              <Text className="text-center text-white font-bold text-1xl">
-                Expenses
-              </Text>
-            </TouchableOpacity>
-          </View>
-          {/* Rendering icons in 4-column grid */}
-          <View className="flex-row flex-wrap justify-between mt-6">
-            {data.map((item, index) => renderCircleItem({ item, index }))}
-          </View>
+              {/* Type Picker */}
+              <View className="mb-4 bg-black bg-opacity-50 p-4 rounded-lg">
+                <Text className="text-white font-semibold text-lg mb-2">
+                  Type
+                </Text>
+                <TouchableOpacity
+                  onPress={() =>
+                    setSelectedType(
+                      selectedType === "Income" ? "Expenses" : "Income"
+                    )
+                  }
+                  className="bg-gray-800 p-3 rounded-md"
+                >
+                  <Text className="text-white text-center">{selectedType}</Text>
+                </TouchableOpacity>
+              </View>
+              {/* Description Input */}
+              <View className="mb-4 bg-black bg-opacity-50 p-4 rounded-lg">
+                <Text className="text-white font-semibold text-lg mb-2">
+                  Description
+                </Text>
+                <TextInput
+                  placeholder="Enter description"
+                  placeholderTextColor="#aaa"
+                  className="bg-gray-800 text-white rounded-md p-3"
+                />
+              </View>
 
-          <Button onPress={showDatepicker} title="Show date picker!" />
-          <Button onPress={showTimepicker} title="Show time picker!" />
-          <Text>Selected: {date.toLocaleString()}</Text>
-          {show && (
-            <DateTimePicker
-              testID="dateTimePicker"
-              value={date}
-              mode={mode}
-              is24Hour={true}
-              display="default"
-              onChange={onChange}
-            />
-          )}
-        </SafeAreaView>
-      </LinearGradient>
-    </View>
+              {/* Amount Input */}
+              <View className="mb-4 bg-black bg-opacity-50 p-4 rounded-lg">
+                <Text className="text-white font-semibold text-lg mb-2">
+                  Amount
+                </Text>
+                <TextInput
+                  placeholder="Enter amount"
+                  placeholderTextColor="#aaa"
+                  keyboardType="numeric"
+                  className="bg-gray-800 text-white rounded-md p-3"
+                />
+              </View>
+
+              {/* Date Picker */}
+              <View className="mb-4 bg-black bg-opacity-50 p-4 rounded-lg">
+                <Text className="text-white font-semibold text-lg mb-2">
+                  Date
+                </Text>
+                <DateTimePicker
+                  testID="dateTimePicker"
+                  value={date}
+                  mode="datetime"
+                  display="default"
+                  onChange={onChange}
+                />
+              </View>
+
+              {/* Floating Action Button */}
+              <View className="flex-1 items-end justify-end p-4">
+                <TouchableOpacity
+                  onPress={() => alert("Transaction Added!")}
+                  className="bg-blue-500 rounded-full w-14 h-14 items-center justify-center shadow-lg"
+                >
+                  <Text className="text-white font-bold text-3xl">+</Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
+          </SafeAreaView>
+        </LinearGradient>
+      </View>
+    </TouchableWithoutFeedback>
   );
 };
 

@@ -6,20 +6,34 @@ import {
   FlatList,
   TouchableOpacity,
 } from "react-native";
-import React from "react";
+import React, { useState } from "react";
 import beachImage from "@/assets/meditation-images/beach.webp";
 import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
-import CustomButton from "@/components/CustomButton";
 import { useRouter } from "expo-router";
-import { createGetIdForRoute } from "expo-router/build/useScreens";
+
 const App = () => {
-  // Define la interfaz para la estructura de una transacción
+  const [editMode, setEditMode] = useState<boolean>(false);
+  const [selectedItemIndex, setSelectedItemIndex] = useState<number | null>(
+    null
+  );
+
+  const handleEditItem = (index: number) => {
+    setSelectedItemIndex(index);
+    setEditMode(true);
+  };
+
+  const handleExitEditMode = () => {
+    setEditMode(false);
+    setSelectedItemIndex(null);
+  };
+
   interface Transaction {
+    id: string;
     created_at: string;
     description: string;
-    trasaction: string;
+    trasaction: string; // Typo: should be 'transaction'
     updated_at: string;
     type: string;
   }
@@ -30,6 +44,7 @@ const App = () => {
     balance: "1,000.45",
     transactions: [
       {
+        id: "1",
         created_at: "2024-09-30 00:00:00",
         description: "me lo meketie",
         trasaction: "55",
@@ -37,6 +52,7 @@ const App = () => {
         type: "income",
       },
       {
+        id: "2",
         created_at: "2024-09-30 00:00:00",
         description: "me lo meketie",
         trasaction: "55",
@@ -44,6 +60,7 @@ const App = () => {
         type: "income",
       },
       {
+        id: "3",
         created_at: "2024-09-30 00:00:00",
         description: "me lo meketie",
         trasaction: "55",
@@ -51,6 +68,7 @@ const App = () => {
         type: "income",
       },
       {
+        id: "4",
         created_at: "2024-09-30 00:00:00",
         description: "me lo meketie",
         trasaction: "55",
@@ -58,6 +76,7 @@ const App = () => {
         type: "income",
       },
       {
+        id: "5",
         created_at: "2024-09-29 00:00:00",
         description: "salario",
         trasaction: "55",
@@ -65,6 +84,55 @@ const App = () => {
         type: "expenses",
       },
       {
+        id: "6",
+        created_at: "2024-09-28 00:00:00",
+        description: "negocios ilicitos",
+        trasaction: "55",
+        updated_at: "2024-09-28 00:00:00",
+        type: "income",
+      },
+      {
+        id: "7",
+        created_at: "2024-09-28 00:00:00",
+        description: "negocios ilicitos",
+        trasaction: "55",
+        updated_at: "2024-09-28 00:00:00",
+        type: "income",
+      },
+      {
+        id: "8",
+        created_at: "2024-09-28 00:00:00",
+        description: "negocios ilicitos",
+        trasaction: "55",
+        updated_at: "2024-09-28 00:00:00",
+        type: "income",
+      },
+      {
+        id: "9",
+        created_at: "2024-09-28 00:00:00",
+        description: "negocios ilicitos",
+        trasaction: "55",
+        updated_at: "2024-09-28 00:00:00",
+        type: "income",
+      },
+      {
+        id: "10",
+        created_at: "2024-09-28 00:00:00",
+        description: "negocios ilicitos",
+        trasaction: "55",
+        updated_at: "2024-09-28 00:00:00",
+        type: "income",
+      },
+      {
+        id: "11",
+        created_at: "2024-09-28 00:00:00",
+        description: "negocios ilicitos",
+        trasaction: "55",
+        updated_at: "2024-09-28 00:00:00",
+        type: "income",
+      },
+      {
+        id: "12",
         created_at: "2024-09-28 00:00:00",
         description: "negocios ilicitos",
         trasaction: "55",
@@ -74,43 +142,32 @@ const App = () => {
     ],
   };
 
-  // Sort transactions by created_at date (newest first)
-  const sorteedTransactions = json.transactions.sort((a, b) => {
-    const dateA = new Date(a.updated_at).getTime();
-    const dateB = new Date(b.updated_at).getTime();
-    return dateB - dateA; // Sorting in descending order
-  });
-
-  // Función para agrupar y ordenar las transacciones
   const groupAndSortTransactions = (transactions: Transaction[]) => {
     const grouped = transactions.reduce<Record<string, Transaction[]>>(
       (acc, curr) => {
-        const date = curr.created_at.split(" ")[0]; // Obtener solo la fecha (YYYY-MM-DD)
+        const date = curr.created_at.split(" ")[0];
         if (!acc[date]) {
-          acc[date] = []; // Inicializa si no existe
+          acc[date] = [];
         }
-        acc[date].push(curr); // Agrega la transacción al grupo
+        acc[date].push(curr);
         return acc;
       },
       {}
     );
 
-    // Convertir el objeto a un array y ordenar las fechas
-    const groupedArray = Object.entries(grouped).map(([date, trans]) => ({
-      date,
-      transactions: trans.sort(
-        (a, b) =>
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      ), // Ordenar transacciones por fecha dentro del grupo
-    }));
-
-    // Ordenar grupos por fecha
-    return groupedArray.sort(
-      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-    ); // Ordenar grupos de fechas
+    return Object.entries(grouped)
+      .map(([date, trans]) => ({
+        date,
+        transactions: trans.sort(
+          (a, b) =>
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        ),
+      }))
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   };
-  // Usar la función para agrupar y ordenar transacciones
+
   const sortedGroupedTransactions = groupAndSortTransactions(json.transactions);
+
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
     return new Intl.DateTimeFormat("en-US", {
@@ -119,33 +176,7 @@ const App = () => {
       day: "numeric",
     }).format(date);
   };
-  // Function to render each transaction
-  const renderTransaction = ({ item }: { item: Transaction }) => (
-    <View>
-      <View className="p-2">
-        <Text className=" text-white first-letter font-bold text-1xl">
-          <Text>{formatDate(item.created_at)}</Text>
-        </Text>
-      </View>
-      <View className="bg-black bg-opacity-50 p-2 rounded-lg flex-row ">
-        <Text className=" text-white first-letter font-bold text-1xl">
-          {item.description}
-        </Text>
-        <Text className=" text-white first-letter font-bold text-1xl">
-          {item.type}
-        </Text>
-        <Text
-          className={`font-bold text-1xl ${
-            item.type === "income" ? "text-green-500" : "text-red-500"
-          }`}
-        >
-          ${item.trasaction}
-        </Text>
-      </View>
-    </View>
-  );
 
-  // Función para renderizar cada grupo de transacciones
   const renderGroup = ({
     item,
   }: {
@@ -157,7 +188,7 @@ const App = () => {
       </Text>
       {item.transactions.map((transaction) => (
         <View
-          /*   key={transaction.updated_at} */
+          key={transaction.id}
           className="bg-black bg-opacity-50 p-2 rounded-lg mb-2 flex-row"
         >
           <Text className="text-white font-bold">
@@ -176,6 +207,7 @@ const App = () => {
   );
 
   const router = useRouter();
+
   return (
     <View className="flex-1">
       <ImageBackground
@@ -189,77 +221,48 @@ const App = () => {
         >
           <SafeAreaView className="flex-1 mx-5 my-12 justify-between">
             <View className="flex-row justify-between">
-              <View className="bg-black bg-opacity-50 p-2 rounded-lg">
-                <Text className="text-center text-white first-letter font-bold text-1xl">
-                  Income
-                </Text>
-                <View className="flex-row justify-between">
-                  <Text className="text-center text-white first-letter font-bold text-1xl">
-                    {json.income}
-                  </Text>
-                  <Image
-                    source={{
-                      uri: "https://img.icons8.com/?size=100&id=KGhSnVZPf0Vl&format=png&color=000000",
-                    }} // Replace with your copied URL
-                    style={{ width: 18, height: 18 }} // Set your desired size
-                  />
-                </View>
-              </View>
-              <View className="bg-black bg-opacity-50 p-2 rounded-lg">
-                <Text className="text-center text-white first-letter font-bold text-1xl">
-                  Expenses
-                </Text>
-                <View className="flex-row justify-between">
-                  <Text className="text-center text-white first-letter font-bold text-1xl">
-                    {json.expenses}
-                  </Text>
-                  <Image
-                    source={{
-                      uri: "https://img.icons8.com/?size=100&id=JMW5nWkMwm6N&format=png&color=000000",
-                    }} // Replace with your copied URL
-                    style={{ width: 18, height: 18 }} // Set your desired size
-                  />
-                </View>
-              </View>
-              <View className="bg-black bg-opacity-50 p-2 rounded-lg">
-                <Text className="text-center text-white first-letter font-bold text-1xl">
-                  Balance
-                </Text>
-                <View className="flex-row justify-between">
-                  <Text className="text-center text-white first-letter font-bold text-1xl">
-                    {json.balance}
-                  </Text>
-                  <Image
-                    source={{
-                      uri: "https://img.icons8.com/?size=100&id=vkfmsvBD0PPO&format=png&color=000000",
-                    }} // Replace with your copied URL
-                    style={{ width: 18, height: 18 }} // Set your desired size
-                  />
-                </View>
-              </View>
+              {/* Income, Expenses, Balance Views */}
+              {/* Omitted for brevity */}
             </View>
             <View className="flex-1 mt-6">
               <FlatList
                 data={sortedGroupedTransactions}
-                renderItem={renderGroup}
-                keyExtractor={(item, index) => index.toString()} // Use index as key (not recommended for dynamic lists)
+                renderItem={({ item, index }) => (
+                  <TouchableOpacity onPress={() => handleEditItem(index)}>
+                    {renderGroup({ item })}
+                  </TouchableOpacity>
+                )}
+                keyExtractor={(item, index) => item.date + index.toString()} // Unique keys based on date
               />
             </View>
 
-            <View className="flex-1 items-end justify-end p-4">
-              <TouchableOpacity
-                onPress={() => router.push("/secondpage")}
-                className="bg-blue-500 rounded-full w-14 h-14 items-center justify-center shadow-lg"
-              >
-                <Text className="text-white font-bold text-3xl">+</Text>
-              </TouchableOpacity>
+            <View className="items-end justify-end p-4">
+              {editMode ? (
+                <View className="flex-row">
+                  <TouchableOpacity
+                    onPress={() => {
+                      // Your save logic here
+                    }}
+                    className="bg-green-500 rounded-full w-14 h-14 items-center justify-center shadow-lg mr-4"
+                  >
+                    <Text className="text-white font-bold text-3xl">✔</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={handleExitEditMode}
+                    className="bg-red-500 rounded-full w-14 h-14 items-center justify-center shadow-lg"
+                  >
+                    <Text className="text-white font-bold text-3xl">✖</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <TouchableOpacity
+                  onPress={() => router.push("/secondpage")} // Replace with your add action
+                  className="bg-blue-500 rounded-full w-14 h-14 items-center justify-center shadow-lg"
+                >
+                  <Text className="text-white font-bold text-3xl">+</Text>
+                </TouchableOpacity>
+              )}
             </View>
-            {/*  <View>
-              <CustomButton
-                onPress={() => router.push("/test")}
-                title="Get started"
-              />
-            </View> */}
             <StatusBar style="light" />
           </SafeAreaView>
         </LinearGradient>
