@@ -4,11 +4,7 @@ import {
   TouchableOpacity,
   SafeAreaView,
   Keyboard,
-  ImageBackground,
-  StatusBar,
   Image,
-  FlatList,
-  Button,
   TextInput,
   TouchableWithoutFeedback,
   ScrollView,
@@ -19,7 +15,6 @@ import DateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
 import { useNavigation, useRouter } from "expo-router";
-import { Picker } from "@react-native-picker/picker";
 const SecondPage = () => {
   const [selectedType, setSelectedType] = useState("Income");
   const navigation = useNavigation(); // Use navigation for back functionality

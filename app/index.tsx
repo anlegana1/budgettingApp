@@ -6,18 +6,80 @@ import {
   FlatList,
   TouchableOpacity,
 } from "react-native";
-import React, { useState } from "react";
-import beachImage from "@/assets/meditation-images/beach.webp";
+import React, { useRef, useState } from "react";
+
 import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { useRouter } from "expo-router";
+import {
+  GestureHandlerRootView,
+  PanGestureHandler,
+  PanGestureHandlerGestureEvent,
+} from "react-native-gesture-handler";
 
 const App = () => {
   const [editMode, setEditMode] = useState<boolean>(false);
   const [selectedItemIndex, setSelectedItemIndex] = useState<number | null>(
     null
   );
+  const [month, setMonth] = useState<number>(new Date().getMonth());
+  const [year, setYear] = useState<number>(new Date().getFullYear());
+
+  const monthNames: string[] = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+  const swipeInProgress = useRef(false); // Bandera para controlar el swipe
+
+  // Define the type for direction parameter
+  const changeMonth = (direction: "left" | "right"): void => {
+    if (direction === "left") {
+      if (month === 0) {
+        setMonth(11);
+        setYear(year - 1);
+      } else {
+        setMonth(month - 1);
+      }
+    } else if (direction === "right") {
+      if (month === 11) {
+        setMonth(0);
+        setYear(year + 1);
+      } else {
+        setMonth(month + 1);
+      }
+    }
+  };
+
+  const onPanGestureEvent = (event: PanGestureHandlerGestureEvent): void => {
+    const { translationX } = event.nativeEvent;
+
+    // Controlar el swipe para que solo cambie una vez
+    if (!swipeInProgress.current) {
+      if (translationX > 50) {
+        swipeInProgress.current = true;
+        changeMonth("left");
+      } else if (translationX < -50) {
+        swipeInProgress.current = true;
+        changeMonth("right");
+      }
+    }
+  };
+
+  const onHandlerStateChange = () => {
+    // Permitir que se realicen más cambios después de que el swipe haya terminado
+    swipeInProgress.current = false;
+  };
 
   const handleEditItem = (index: number) => {
     setSelectedItemIndex(index);
@@ -210,63 +272,66 @@ const App = () => {
 
   return (
     <View className="flex-1">
-      <ImageBackground
-        source={beachImage}
-        resizeMode="cover"
-        className="flex-1"
-      >
-        <LinearGradient
-          className="flex-1"
-          colors={["rgba(0,0,0,0.4)", "rgba(0,0,0,0.8)"]}
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <PanGestureHandler
+          onGestureEvent={onPanGestureEvent}
+          onEnded={onHandlerStateChange}
         >
-          <SafeAreaView className="flex-1 mx-5 my-12 justify-between">
-            <View className="flex-row justify-between">
-              {/* Income, Expenses, Balance Views */}
-              {/* Omitted for brevity */}
-            </View>
-            <View className="flex-1 mt-6">
-              <FlatList
-                data={sortedGroupedTransactions}
-                renderItem={({ item, index }) => (
-                  <TouchableOpacity onPress={() => handleEditItem(index)}>
-                    {renderGroup({ item })}
-                  </TouchableOpacity>
-                )}
-                keyExtractor={(item, index) => item.date + index.toString()} // Unique keys based on date
-              />
-            </View>
-
-            <View className="items-end justify-end p-4">
-              {editMode ? (
-                <View className="flex-row">
-                  <TouchableOpacity
-                    onPress={() => {
-                      // Your save logic here
-                    }}
-                    className="bg-green-500 rounded-full w-14 h-14 items-center justify-center shadow-lg mr-4"
-                  >
-                    <Text className="text-white font-bold text-3xl">✔</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={handleExitEditMode}
-                    className="bg-red-500 rounded-full w-14 h-14 items-center justify-center shadow-lg"
-                  >
-                    <Text className="text-white font-bold text-3xl">✖</Text>
-                  </TouchableOpacity>
+          <View className="flex-1">
+            <LinearGradient
+              className="flex-1"
+              colors={["rgba(0,0,0,0.4)", "rgba(0,0,0,0.8)"]}
+            >
+              <SafeAreaView className="flex-1 mx-5 my-12 justify-between">
+                <View className="flex-row justify-between">
+                  {/* Income, Expenses, Balance Views */}
+                  {/* Omitted for brevity */}
                 </View>
-              ) : (
-                <TouchableOpacity
-                  onPress={() => router.push("/secondpage")} // Replace with your add action
-                  className="bg-blue-500 rounded-full w-14 h-14 items-center justify-center shadow-lg"
-                >
-                  <Text className="text-white font-bold text-3xl">+</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-            <StatusBar style="light" />
-          </SafeAreaView>
-        </LinearGradient>
-      </ImageBackground>
+                <View className="flex-1 mt-6">
+                  <Text>
+                    {monthNames[month]} {year}
+                  </Text>
+                  <FlatList
+                    data={sortedGroupedTransactions}
+                    renderItem={({ item, index }) => (
+                      <TouchableOpacity onPress={() => handleEditItem(index)}>
+                        {renderGroup({ item })}
+                      </TouchableOpacity>
+                    )}
+                    keyExtractor={(item, index) => item.date + index.toString()} // Unique keys based on date
+                  />
+                </View>
+
+                <View className="items-end justify-end p-4">
+                  {editMode ? (
+                    <View className="flex-row">
+                      <TouchableOpacity className="bg-green-500 rounded-full w-14 h-14 items-center justify-center shadow-lg mr-4">
+                        <Text className="text-white font-bold text-3xl">✔</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={handleExitEditMode}
+                        className="bg-red-500 rounded-full w-14 h-14 items-center justify-center shadow-lg"
+                      >
+                        <Text className="text-white font-bold text-3xl">✖</Text>
+                      </TouchableOpacity>
+                    </View>
+                  ) : (
+                    <TouchableOpacity
+                      onPress={() => {
+                        router.push("/secondpage");
+                      }}
+                      className="bg-blue-500 rounded-full w-14 h-14 items-center justify-center shadow-lg"
+                    >
+                      <Text className="text-white font-bold text-3xl">+</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+                <StatusBar style="light" />
+              </SafeAreaView>
+            </LinearGradient>
+          </View>
+        </PanGestureHandler>
+      </GestureHandlerRootView>
     </View>
   );
 };
